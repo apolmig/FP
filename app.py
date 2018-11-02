@@ -1,6 +1,5 @@
-""A demo app that can be used as a skeleton template for bootstrapping the
+""" A demo app that can be used as a skeleton template for bootstrapping the
 creation of simple Plotly Dash apps.
-
 """
 
 from collections import Counter

@@ -2,18 +2,15 @@
 creation of simple Plotly Dash apps.
 """
 
-from collections import Counter
-
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
-import plotly.graph_objs as go
 import pandas as pd
-from dash.dependencies import Input, State, Output, Event
+import plotly.graph_objs as go
 
+external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
-app = dash.Dash(__name__)
-app.title = 'Dash Skeleton'
+app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
 df = pd.read_csv(
     'https://gist.githubusercontent.com/chriddyp/' +
@@ -22,84 +19,34 @@ df = pd.read_csv(
     'gdp-life-exp-2007.csv')
 
 
-# If you need to run your app locally
-#app.scripts.config.serve_locally = True
-
 app.layout = html.Div([
-    dcc.Markdown("""
-# Dash Demo app
-
-This demo app counts the number of characters in the text box and updates a bar
-chart with their frequency as you type."""),
-    html.Div(
-        dcc.Textarea(
-            id='text-input',
-            value='Type some text into me!',
-            style={'width':'40em', 'height': '5em'},
-        )
-    ),
-    html.Div('Sort by:'),
-    dcc.RadioItems(
-        id='sort-type',
-        options=[
-            {'label': 'Frequency', 'value': 'frequency'},
-            {'label': 'Character code', 'value': 'code'},
-        ],
-        value='frequency'
-    ),
-    html.Div('Normalize character case?'),
-    dcc.RadioItems(
-        id='normalize',
-        options=[
-            {'label': 'No', 'value': 'no'},
-            {'label': 'Yes', 'value': 'yes'},
-        ],
-        value='no'
-    ),
-    dcc.Graph(id='graph', className='red')
-    
-    ]);
-
-
-@app.callback(
-    Output('graph', 'figure'),      # Output
-    [Input('text-input', 'value'),  # Inputs
-     Input('sort-type', 'value'),
-     Input('normalize', 'value')],  
-    [],                             # States
-    []                              # Events
-)
-def callback(text, sort_type, normalize):
-    if normalize == 'yes':
-        text = text.lower()
-
-    if sort_type == 'frequency':
-        sort_func = lambda x:-x[1]
-    else:
-        sort_func = lambda x:ord(x[0])
-        
-    counts = Counter(text)
-
-    if len(counts) == 0:
-        x_data = []
-        y_data = []
-    else:
-        x_data, y_data = zip(*sorted(
-            counts.items(),
-            key=sort_func))
-    return {
-        'data': [
-            {'x': x_data, 'y':y_data, 'type': 'bar', 'name': 'trace1'},
-        ],
-        'layout': {
-            'title': 'Frequency of Characters',
-            'height': '600',
-            'font': {'size': 16}
-        },
-    }
-
+    dcc.Graph(
+        id='life-exp-vs-gdp',
+        figure={
+            'data': [
+                go.Scatter(
+                    x=df[df['continent'] == i]['gdp per capita'],
+                    y=df[df['continent'] == i]['life expectancy'],
+                    text=df[df['continent'] == i]['country'],
+                    mode='markers',
+                    opacity=0.7,
+                    marker={
+                        'size': 15,
+                        'line': {'width': 0.5, 'color': 'white'}
+                    },
+                    name=i
+                ) for i in df.continent.unique()
+            ],
+            'layout': go.Layout(
+                xaxis={'type': 'log', 'title': 'GDP Per Capita'},
+                yaxis={'title': 'Life Expectancy'},
+                margin={'l': 40, 'b': 40, 't': 10, 'r': 10},
+                legend={'x': 0, 'y': 1},
+                hovermode='closest'
+            )
+        }
+    )
+])
 
 if __name__ == '__main__':
-    # To make this app publicly available, supply the parameter host='0.0.0.0'.
-    # You should also disable debug mode in production.
-    app.run_server(debug=True, port=8051)
+    app.run_server()

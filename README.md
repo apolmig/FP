@@ -1,1 +1,1 @@
-# A Dashboard about FP2 (CFGS) education in Spain
+# A Dashboard about Formación Profesional (FP - Ciclos Formativos) education in Spain
